@@ -1,0 +1,216 @@
+import sys, socket
+import json
+import cgi
+import pickle
+import base64
+from io import BytesIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+import numpy as np
+from PIL import Image
+from http.server import SimpleHTTPRequestHandler, BaseHTTPRequestHandler, HTTPServer
+from modules.controller import Controller
+
+# setting
+host = ''
+port = 8000
+
+class MyHandler(BaseHTTPRequestHandler):
+#class MyHandler(SimpleHTTPRequestHandler):
+#class JsonResponseHandler(BaseHTTPRequestHandler):
+    def do_POST(self):        
+        print("simpleserver do_POST exec()")
+
+        if self.path.endswith('favicon.ico'):
+          return;
+
+        self.controller = Controller()
+
+        # request
+        image = self.getRequestData()
+
+        # get request data
+        #image = Image.open(requestBody['file '])
+        #image = requestBody['file'].value
+        print(type(image))
+        image.save('./images_webwrite/100_0.png')
+        #with open("testpng.png",'wb') as f1:
+        #    pickle.dump(image, f1)   #pickle.dump（データ、ファイル）
+
+        # logic
+        #logicResult = self.controller.logic(Image.open('./images_webwrite/100_0.png'))
+        logicResult = self.controller.logic(image)
+        image.close()
+
+        # make result
+        result = self.makeResponseData(logicResult)
+
+        # send
+        self.sendResponse(result)
+        return
+
+    def getRequestData(self):
+        # POST されたフォームデータを解析する
+        form = cgi.FieldStorage(
+            fp=self.rfile, 
+            headers=self.headers,
+            environ={'REQUEST_METHOD':'POST',
+                     #'CONTENT_TYPE':self.headers['Content-Type'],
+                     'CONTENT_TYPE':'png',
+                     })
+        print(form)
+        #return form['file'].value
+        """
+        base64 = base64.b64decode( form['file'].value )
+        image_string = cStringIO.StringIO(base64)
+        image = Image.open(image_string)
+        """
+        image = Image.open(BytesIO(base64.b64decode(form['file'].value)))
+        return image
+        """
+        file_data = form['file'].value
+        file_len = len(file_data)
+        print(file_data)
+        print(file_len)
+
+        del file_data
+        self.wfile.write('\tUploaded %s as "%s" (%d bytes)\n' % \
+                        (field, field_item.filename, file_len))  
+        """ 
+        # フォームに POST されたデータの情報を送り返す
+        """
+        for field in form.keys():
+            field_item = form[field]
+            print(field_item)
+            if field_item.filename:
+                print("field_item.filename exec")
+                # field はアップロードされたファイルを含みます
+                file_data = field_item.file.read()
+                file_len = len(file_data)
+                del file_data
+                self.wfile.write('\tUploaded %s as "%s" (%d bytes)\n' % \
+                        (field, field_item.filename, file_len))
+            else:
+                # 通常のフォーム値
+                self.wfile.write('\t%s=%s\n' % (field, form[field].value))
+        """
+        """
+        fileitem = form['file']
+        line = None
+        print(type(fileitem))
+        if fileitem.file:
+            print("fileitem.file exec")
+            # It's an uploaded file; count lines
+            linecount = 0
+            while 1:
+                line = fileitem.file.readline()
+                if not line: break
+                linecount = linecount + 1
+        """
+        ##print(type(file_data))
+        #result = ''
+        #form = cgi.FieldStorage()
+        #if form.has_key('file'):
+        #    item = form['file']
+        #    if item.file:
+        #        fout = file(os.path.join('/tmp', item.filename), 'wb')
+        #        while True:
+        #            chunk = item.file.read(1000000)
+        #            if not chunk:
+        #                break
+        #            fout.write(chunk)
+        #        fout.close()
+        #        result = 'アップロードしました。'
+
+        
+        """
+        content_len = int(self.headers.get('content-length'))
+        result = self.rfile.read(content_len)
+        print('result = ')
+        print(result)
+        """
+        #result = json.loads(request)
+        #result = '{"user" : "test", "params" : {"id" : 123, "data" : 5}}'
+        #return file_data
+
+    def makeResponseData(self, result):
+        print("### simpleserver makeResponseData exec")
+        print(result)
+        print(type(result))
+
+        return result.encode('utf-8')
+
+    def sendResponse(self, result):
+        print("### simpleserver sendResponse exec")
+        self.send_response(200)
+        self.send_header('Content-type', 'text/json')
+        self.send_header('Access-Control-Allow-Origin', 'http://deeplearning.local.com:8000/')
+        #self.send_header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept')
+        self.end_headers()
+        #self.wfile.flush()
+        #self.wfile.write('Client: %s\n' % str(self.client_address))
+        #self.wfile.write('User-agent: %s\n' % str(self.headers['user-agent']))
+        self.wfile.write(str(result).encode('UTF-8'))
+        self.wfile.close()
+        return 
+
+        """
+        # make response data
+        self.send_response(200)
+        self.send_header('Content-type', 'text/json')
+        #self.wfile.write('Path: %s\n' % self.path)
+        #self.wfile.write('Form data:\n')
+        self.send_header('Content-length', len(result))
+        self.end_headers()
+        
+        #self.wfile.flush()
+        #self.wfile.write('Client: %s\n' % str(self.client_address))
+        #self.wfile.write('User-agent: %s\n' % str(self.headers['user-agent']))
+        self.wfile.write(result)
+
+        #self.end_headers()
+
+        #responseData = json.dumps(result)
+        #self.wfile.write(responseData.encode('UTF-8'))
+        self.wfile.close()
+        return
+        """
+
+#server = HTTPServer(('', port), JsonResponseHandler)
+server = HTTPServer((host, port), MyHandler)
+server.serve_forever()
+
+"""
+socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#socket = ssl.wrap_socket(socket, certfile='cert.pem', server_side=True)
+socket.bind((address, port))
+socket.listen(5)
+print('serving at port', port)
+
+while True:
+    result = {}
+
+    # controller exec
+    print("simpleserver controller exec()")
+    y = controller.exec(x_test[0])
+    p = np.argmax(y)
+    #a = np.argmax(t_test[0])
+
+    # make result
+    result = {"p":str(p)}
+    print(result)
+
+    # make response
+    body = json.dumps(result);
+    (csocket, address2) = socket.accept()
+    csocket.send("HTTP/1.1 200 OK\r\n")
+    csocket.send("Content-Type: application/json; charset=UTF-8\r\n")
+    csocket.send("Content-Length: " + str(len(body)) + "\r\n")
+    csocket.send("Connection: Close\r\n")
+    csocket.send("\r\n")
+    csocket.send(body)
+    csocket.close()
+socket.close()
+"""

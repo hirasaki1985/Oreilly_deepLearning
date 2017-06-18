@@ -1,0 +1,124 @@
+import sys, socket
+import json
+import cgi
+import pickle
+import base64
+from io import BytesIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+import numpy as np
+from PIL import Image
+from http.server import BaseHTTPRequestHandler, HTTPServer
+#from modules.controller import Controller
+
+# setting
+host = ''
+port = 8000
+
+class MyHandler(BaseHTTPRequestHandler):
+#class MyHandler(SimpleHTTPRequestHandler):
+#class JsonResponseHandler(BaseHTTPRequestHandler):
+    def do_POST(self):        
+        print("simpleserver do_POST exec()")
+
+        if self.path.endswith('favicon.ico'):
+          return;
+
+        #self.controller = Controller()
+
+        # request
+        image = self.getRequestData()
+        print(type(image))
+
+        # logic
+        logicResult = ""
+        #logicResult = self.controller.logic(Image.open('./images_webwrite/100_0.png'))
+        #logicResult = self.controller.logic(image)
+        #image.close()
+
+        # make result
+        result = self.makeResponseData(logicResult)
+
+        # send
+        self.sendResponse(result)
+        return
+
+    def getRequestData(self):
+        # POST されたフォームデータを解析する
+        """
+        form = cgi.FieldStorage(
+            fp=self.rfile, 
+            headers=self.headers,
+            environ={'REQUEST_METHOD':'POST',
+                     #'CONTENT_TYPE':self.headers['Content-Type'],
+                     'CONTENT_TYPE':'png',
+                     })
+        print(form)
+        image = Image.open(BytesIO(base64.b64decode(form['file'].value)))
+        """
+        image = {"test":"requestData"}
+        return image
+
+    def makeResponseData(self, result):
+        print("### simpleserver makeResponseData exec")
+        result = {"test":"responseData"}
+
+        print(result)
+        print(type(result))
+
+        return result
+
+    def sendResponse(self, result):
+        print("### simpleserver sendResponse exec")
+        self.send_response(200)
+        self.send_header('Content-type', 'text/json')
+        self.send_header('Access-Control-Allow-Origin', 'http://deeplearning.local.com')
+        self.end_headers()
+
+        #self.wfile.flush()
+        self.wfile.write(str(result).encode('UTF-8'))
+        self.wfile.close()
+        return 
+
+try:
+    server = HTTPServer((host, port), MyHandler)
+    server.serve_forever()
+
+except KeyboardInterrupt:
+    print ('^C received, shutting down the web server')
+    server.socket.close()
+    
+"""
+socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#socket = ssl.wrap_socket(socket, certfile='cert.pem', server_side=True)
+socket.bind((address, port))
+socket.listen(5)
+print('serving at port', port)
+
+while True:
+    result = {}
+
+    # controller exec
+    print("simpleserver controller exec()")
+    y = controller.exec(x_test[0])
+    p = np.argmax(y)
+    #a = np.argmax(t_test[0])
+
+    # make result
+    result = {"p":str(p)}
+    print(result)
+
+    # make response
+    body = json.dumps(result);
+    (csocket, address2) = socket.accept()
+    csocket.send("HTTP/1.1 200 OK\r\n")
+    csocket.send("Content-Type: application/json; charset=UTF-8\r\n")
+    csocket.send("Content-Length: " + str(len(body)) + "\r\n")
+    csocket.send("Connection: Close\r\n")
+    csocket.send("\r\n")
+    csocket.send(body)
+    csocket.close()
+socket.close()
+"""
