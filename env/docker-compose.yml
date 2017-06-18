@@ -1,0 +1,11 @@
+webserver:
+  build: webserver
+  #image: nginx
+  ports:
+    - "3000:3000"
+aiserver:
+  #image: centos7
+  build: aiserver
+  ports:
+    - "8000:8000"
+
