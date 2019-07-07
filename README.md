@@ -4,7 +4,7 @@ Oreilly_deepLearning
 ## libraries
 ```
 $ python -V
-Python 2.7.15 :: Anaconda, Inc.
+Python 3.7.0
 ```
 
 
