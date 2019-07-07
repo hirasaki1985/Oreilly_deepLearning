@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys, socket
 import json
 import cgi
@@ -16,14 +18,15 @@ host = ''
 port = 8000
 
 class MyHandler(BaseHTTPRequestHandler):
-    def do_POST(self):        
+    def do_POST(self):
         print("simpleserver do_POST exec()")
 
         # init
         #self.controller = Controller(network = BackPropagation())
         self.controller = SimpleConvController()
         #self.allowOrigin = 'http://deeplearning.local.com'
-        self.allowOrigin = "http://" + self.headers.get('Host').rsplit(":")[0]
+        #self.allowOrigin = "http://" + self.headers.get('Host').rsplit(":")[0]
+        self.allowOrigin = "http://127.0.0.1:8888"
 
         # access check
         if self.path.endswith('favicon.ico'):
@@ -47,7 +50,7 @@ class MyHandler(BaseHTTPRequestHandler):
     def getRequestData(self):
         # POST されたフォームデータを解析する
         form = cgi.FieldStorage(
-            fp=self.rfile, 
+            fp=self.rfile,
             headers=self.headers,
             environ={'REQUEST_METHOD':'POST',
                      'CONTENT_TYPE':'png',
@@ -75,7 +78,7 @@ class MyHandler(BaseHTTPRequestHandler):
         #self.wfile.flush()
         self.wfile.write(str(result).encode('UTF-8'))
         self.wfile.close()
-        return 
+        return
 
 try:
     server = HTTPServer((host, port), MyHandler)

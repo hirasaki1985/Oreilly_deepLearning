@@ -1,4 +1,5 @@
-var apiUrl = "http://" + location.host + ":8000";
+// var apiUrl = "http://" + location.host + ":8000";
+var apiUrl = "http://127.0.0.1:8000";
 
 $(function() {
   // view
@@ -13,10 +14,10 @@ $(function() {
 
   // triggers
   $('#submit').click(function() {
-    
+
     var canvasData = document.getElementById("testImage");
     var imgObj = canvasData.toDataURL('image/png');
-    
+
     //var canvasData = $('testImage').get(0).toDataURL();
     pngImage = imgObj.replace(/^.*,/, '');
 
@@ -62,12 +63,12 @@ $(function() {
     });
     return ;
   }
-  
+
   var can;
   var ct;
   var ox=0,oy=0,x=0,y=0;
   var mf=false;
-  
+
   function mam_draw_init(){
     //初期設定
     can=document.getElementById("testImage");
@@ -105,7 +106,7 @@ $(function() {
     mf=false;
     event.stopPropagation();
   }
-    
+
   function onMouseDown(event){
     ox=event.clientX-event.target.getBoundingClientRect().left;
     oy=event.clientY-event.target.getBoundingClientRect().top ;
